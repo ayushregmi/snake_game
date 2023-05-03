@@ -2,11 +2,11 @@ import pygame
 import random
 from queue import PriorityQueue, Queue
 
-SCREEN_DIMENSIONS = (800, 800)
-FPS = 60
+SCREEN_DIMENSIONS = (400, 400)
+FPS = 30
 BACKGROUND_COLOR = (81, 81, 81)
 
-SNAKE_SIZE = FOOD_SIZE = BOX_SIZE = 10
+SNAKE_SIZE = FOOD_SIZE = BOX_SIZE = 20
 SNAKE_COLOR = (0, 255, 0)
 
 FOOD_COLOR = (255, 0, 0)
@@ -200,11 +200,12 @@ class Node():
 
 
 class Game():
-    
+
     
     def __init__(self, screenDimensions):
         self.screenDimensions = screenDimensions
         self.reset_game()
+        pygame.font.init()
         self.screen = pygame.display.set_mode(self.screenDimensions)
         pygame.display.set_caption("Snake Game")
         self.background = (0, 0, 0)
@@ -213,7 +214,16 @@ class Game():
         self.enableKeyboard = True
 
         return
-    
+
+    def display_score(self):
+        
+        
+        font = pygame.font.Font(size=50)
+        text = font.render(f"Score: {self.score}", True, (200,200,200))
+        
+        self.screen.blit(text, (10,10))
+        return
+        
     def path_to_food(self):
         node_list = []
 
@@ -236,9 +246,7 @@ class Game():
             
             index = i + j * NUMBER_OF_BOXES            
             
-            steps_to_empty = len(self.player.body) - part_index
-            
-            if (len(self.player.body) - part_index) < (abs(self.player.head_position[0] - part.position[0]) + abs(self.player.head_position[1] - part.position[1])):
+            if (len(self.player.body) - part_index - 2) < (abs(self.player.head_position[0] - part.position[0]) + abs(self.player.head_position[1] - part.position[1])):
                 continue
             
             node_list[index].setObstacle()
@@ -257,6 +265,7 @@ class Game():
             if pq.qsize() == 0:
                 print("food unreachable")
                 self.updateScreen()
+                return Queue()
             
             total_cost, current_node = pq.get()
             
@@ -274,7 +283,7 @@ class Game():
                 node_list[index].setParent(current_node)
                 node_list[index].setCost(current_node.cost)
                 node_list[index].setDistance(endNode)
-                pq.put(((node_list[index].cost* 0.1 + node_list[index].distanceToEnd * 50), node_list[index]))
+                pq.put(((node_list[index].cost + node_list[index].distanceToEnd * 100), node_list[index]))
                 open_list.append(node_list[index])
             
         
@@ -370,6 +379,7 @@ class Game():
     
     def updateScreen(self):
         self.screen.fill(BACKGROUND_COLOR)
+        self.display_score()
         self.player.drawPlayer(self.screen)
         self.food.drawFood(self.screen)
         pygame.display.update()
@@ -387,12 +397,11 @@ class Game():
             
             
             if self.player.checkCollision():
-                self.dataframe.to_csv("data.csv")
                 print(f"final score: {self.score}")
-                while self.run:
-                    self.handleKeyboardInput()
-                    pass
-            
+                # while self.run:
+                #     self.handleKeyboardInput()
+                #     pass
+                self.reset_game()
             if self.food == self.player.body[0]:
                 self.player.direction = 0
                 self.eatFood()

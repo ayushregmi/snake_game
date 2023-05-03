@@ -153,7 +153,9 @@ class Game():
         
         foodPosition = (random.randrange(0, NUMBER_OF_BOXES), random.randrange(0, NUMBER_OF_BOXES))
         self.food = Food()
-        self.food.changePosition(foodPosition)    
+        self.food.changePosition(foodPosition)  
+        self.gameover = False  
+        self.enableKeyboard = True
     
         while self.food in self.player.body: 
             foodPosition = (random.randrange(0, NUMBER_OF_BOXES), random.randrange(0, NUMBER_OF_BOXES))
@@ -171,7 +173,10 @@ class Game():
                 if event.type == pygame.QUIT:
                     self.run = False
                 
+                
                 if event.type == pygame.KEYDOWN:
+                    if self.gameover and event.key == pygame.K_r:
+                        self.reset_game()
                     self.enableKeyboard = False
                     if (event.key == pygame.K_LEFT or event.key == pygame.K_a) and self.player.direction != 3:
                         self.player.direction = 1
@@ -186,11 +191,11 @@ class Game():
                         self.player.direction = 2
                         keypressed = 2
                     
-                if self.player.direction > 0:
-                    self.generateTrainingData(prevDirection)
+                # if self.player.direction > 0:
+                #     self.generateTrainingData(prevDirection)
                     
-                if keypressed > 0:
-                    return
+                # if keypressed > 0:
+                #     return
                         
 
             
@@ -221,20 +226,21 @@ class Game():
     def start_game(self):
         self.run = True
         
-        try:
-            self.dataframe = pd.read_csv("data.csv")["player_x", "player_y", "player_size", "food_position_x", "food_position_y", "previous_direction", "new_direction"]
-        except:
-            self.dataframe = pd.DataFrame(columns=["player_x", "player_y", "player_size", "food_position_x", "food_position_y", "previous_direction", "new_direction"])
+        # try:
+        #     self.dataframe = pd.read_csv("data.csv")["player_x", "player_y", "player_size", "food_position_x", "food_position_y", "previous_direction", "new_direction"]
+        # except:
+        #     self.dataframe = pd.DataFrame(columns=["player_x", "player_y", "player_size", "food_position_x", "food_position_y", "previous_direction", "new_direction"])
         while self.run:
             self.handleKeyboardInput()
             
             self.player.move()
             
             
-            if self.player.checkCollision():
-                self.dataframe.to_csv("data.csv")
+            self.gameover = self.player.checkCollision()
+            if self.gameover:
+                # self.dataframe.to_csv("data.csv")
                 print(f"final score: {self.score}")
-                while self.run:
+                while self.gameover:
                     self.handleKeyboardInput()
                     pass
             
